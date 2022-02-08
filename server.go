@@ -2,31 +2,30 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
-	"strconv"
-	"sync"
+
+	"github.com/gorilla/mux"
 )
 
-var counter int
-var mutex = &sync.Mutex{}
-
-func echoString(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello Kenya")
-}
-
-func incrementCounter(w http.ResponseWriter, r *http.Request) {
-	mutex.Lock()
-	counter++
-	fmt.Fprintf(w, strconv.Itoa(counter))
-	mutex.Unlock()
-}
-
 func main() {
-	http.HandleFunc("/", echoString)
-	http.HandleFunc("/increment", incrementCounter)
-	http.HandleFunc("/hi", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "hi")
+	//router
+	r := mux.NewRouter()
+
+	//register a request handler
+	r.HandleFunc("/books/{title}/page/{page}", func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		title := vars["title"]
+		page := vars["page"]
+
+		fmt.Fprintf(w, "You've requested the book: %s on page %s\n", title, page)
 	})
-	log.Fatal(http.ListenAndServe(":8001", nil))
+
+	//Serving static assets
+	fs := http.FileServer(http.Dir("static/"))
+
+	//  strip away a part of the url path.
+	http.Handle("static/", http.StripPrefix("static/", fs))
+
+	// listen to an http connection
+	http.ListenAndServe(":8000", r)
 }
