@@ -27,5 +27,7 @@ func main() {
 	http.Handle("static/", http.StripPrefix("static/", fs))
 
 	// listen to an http connection
+	fmt.Printf("server running on port 8000")
 	http.ListenAndServe(":8000", r)
+
 }
